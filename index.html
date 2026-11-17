@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filipino Hate Speech Classification | BItByte (CMSC 170)</title>
+  <style>
+    :root {
+      --primary: #1a365d;
+      --accent: #2b6cb0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding-bottom: 4rem;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #ffffff;
+      padding: 3.5rem 1.5rem;
+      text-align: center;
+    }
+
+    header .course-tag {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-bottom: 1rem;
+    }
+
+    header h1 {
+      font-size: 2.1rem;
+      max-width: 820px;
+      margin: 0 auto 0.75rem auto;
+      line-height: 1.25;
+    }
+
+    header .members {
+      font-size: 1rem;
+      opacity: 0.92;
+      max-width: 750px;
+      margin: 0 auto 1.5rem auto;
+    }
+
+    .links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.25rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.88;
+    }
+
+    .btn-light {
+      background-color: #ffffff;
+      color: var(--primary);
+    }
+
+    .btn-outline {
+      border: 1.5px solid #ffffff;
+      color: #ffffff;
+    }
+
+    nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.65rem 1rem;
+      text-align: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin: 0 0.75rem;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    main {
+      max-width: 920px;
+      margin: 2rem auto 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.4rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.45rem;
+      margin-bottom: 1.15rem;
+    }
+
+    h3 {
+      color: var(--accent);
+      font-size: 1.08rem;
+      margin: 1.25rem 0 0.5rem 0;
+    }
+
+    p {
+      margin-bottom: 0.9rem;
+    }
+
+    ul, ol {
+      margin-left: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    li {
+      margin-bottom: 0.45rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.15rem 0;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.65rem 0.8rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    td:first-child, th:first-child {
+      text-align: left;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .highlight-row {
+      font-weight: 700;
+      background-color: #edf2f7 !important;
+    }
+
+    .highlight-cell {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .formula-box {
+      background: #f1f5f9;
+      border-left: 4px solid var(--accent);
+      padding: 0.85rem 1.1rem;
+      margin: 0.9rem 0;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+    }
+
+    .figure-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 1.25rem;
+    }
+
+    figure {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      background: #ffffff;
+      text-align: center;
+    }
+
+    figure img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    figcaption {
+      margin-top: 0.65rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .note-banner {
+      background: #fefce8;
+      border: 1px solid #fef08a;
+      color: #854d0e;
+      padding: 0.85rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SECTION 1 & 10: Title, Group Members, and Primary Links -->
+  <header>
+    <div class="course-tag">CMSC 170: Introduction to Artificial Intelligence &bull; Group BItByte</div>
+    <h1>Filipino Hate Speech Classification Using Naïve Bayes, k-NN, and Perceptron</h1>
+    <p class="members">
+      <strong>Members:</strong> Raymond Benedict Sariño (Leader), Ralph Benedict Crisostomo,
+      Braedan Anthony Jorge Paguirigan, Geoseffe Peter Rufo
+    </p>
+    <div class="links">
+      <a href="https://github.com/int-gcr/BItByte-PROJECT-170" target="_blank" class="btn btn-light">GitHub Repository</a>
+      <a href="https://huggingface.co/datasets/jcblaise/hatespeech_filipino" target="_blank" class="btn btn-outline">Hugging Face Dataset</a>
+      <!-- Replace # with your actual Canva presentation link -->
+      <a href="#" target="_blank" class="btn btn-outline">Presentation Slides</a>
+    </div>
+  </header>
+
+  <nav>
+    <a href="#problem">Problem</a>
+    <a href="#dataset">Dataset</a>
+    <a href="#methods">Methods</a>
+    <a href="#setup">Experimental Setup</a>
+    <a href="#results">Results</a>
+    <a href="#discussion">Discussion</a>
+    <a href="#conclusion">Conclusion</a>
+    <a href="#references">References</a>
+  </nav>
+
+  <main>
+
+    <!-- SECTION 2: Problem Statement and Motivation -->
+    <section id="problem">
+      <h2>1. Problem Statement and Motivation</h2>
+      <p>
+        Online political discourse in the Philippines frequently involves a mix of Filipino, English, and code-switched Taglish. During high-stakes events such as national elections, social media platforms see a surge in targeted harassment, insults, and hate speech. Moderating this content manually is unscalable, yet off-the-shelf moderation models are predominantly trained on standard English and struggle with Philippine linguistic nuances.
+      </p>
+      <p>
+        <strong>Task Definition:</strong> We frame this problem as a supervised binary text classification task. Given a raw tweet in Filipino or Taglish, the model must classify it as either <strong>Non-hate (0)</strong> or <strong>Hate (1)</strong>. To understand how different learning paradigms handle sparse, code-switched text, we implement and compare three classical machine learning algorithms completely from scratch: <strong>Multinomial Naïve Bayes</strong>, <strong>k-Nearest Neighbors (k-NN)</strong>, and the <strong>Perceptron</strong>.
+      </p>
+    </section>
+
+    <!-- SECTION 3: Dataset Description -->
+    <section id="dataset">
+      <h2>2. Dataset Description and Preprocessing</h2>
+      <p>
+        <strong>Source &amp; License:</strong> We use the raw version (<code>hatespeech_raw.zip</code>) of the Filipino Hate Speech Dataset released by Cabasag et al. (2019) on Hugging Face under the Apache-2.0 license. The corpus consists of 18,464 tweets collected during the 2016 Philippine presidential election.
+      </p>
+      <p>
+        <strong>Target Labels:</strong> Each instance is annotated with a binary target label (Cruz and Cheng, 2020): <code>0</code> for non-hate and <code>1</code> for hate. In our inspection of the corpus, label <code>1</code> generally marks hostile or insulting posts aimed at political candidates or parties, whereas label <code>0</code> covers news updates, poll results, neutral questions, and supportive commentary. Profanity alone does not determine the label.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Split</th>
+            <th>Total Tweets</th>
+            <th>Share</th>
+            <th>Non-hate (0)</th>
+            <th>Hate (1)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Train</td>
+            <td>10,000</td>
+            <td>54.2%</td>
+            <td>5,340 (53.4%)</td>
+            <td>4,660 (46.6%)</td>
+          </tr>
+          <tr>
+            <td>Validation</td>
+            <td>4,232</td>
+            <td>22.9%</td>
+            <td>2,299 (54.3%)</td>
+            <td>1,933 (45.7%)</td>
+          </tr>
+          <tr>
+            <td>Test</td>
+            <td>4,232</td>
+            <td>22.9%</td>
+            <td>2,225 (52.6%)</td>
+            <td>2,007 (47.4%)</td>
+          </tr>
+          <tr class="highlight-row">
+            <td>Total</td>
+            <td>18,464</td>
+            <td>100%</td>
+            <td>9,864 (53.4%)</td>
+            <td>8,600 (46.6%)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>From-Scratch Preprocessing Pipeline</h3>
+      <ol>
+        <li><strong>Text Cleansing:</strong> Every tweet is lowercased, URLs and <code>@mentions</code> are stripped, non-alphanumeric characters (excluding spaces) are removed, and text is tokenized on whitespace. Stop words are retained to preserve Taglish grammatical and contextual cues.</li>
+        <li><strong>Vocabulary Construction:</strong> Built exclusively from the 10,000 training tweets to prevent data leakage, yielding <strong>15,943 unique tokens</strong>. Out-of-vocabulary words in validation and test splits are ignored.</li>
+        <li><strong>Feature Representation:</strong> Naïve Bayes operates on raw Bag-of-Words token counts. k-NN and the Perceptron use Term Frequency–Inverse Document Frequency (TF-IDF) features computed strictly from training document frequencies (<em>N</em> = 10,000).</li>
+        <li><strong>L2 Normalization:</strong> Each TF-IDF vector is scaled to unit Euclidean length so tweets of varying word counts are compared fairly.</li>
+      </ol>
+    </section>
+
+    <!-- SECTION 4: Methods -->
+    <section id="methods">
+      <h2>3. Machine Learning Methods</h2>
+      <p>
+        All three algorithms were implemented from scratch using only Python's standard library (<code>csv</code>, <code>math</code>, <code>re</code>, <code>heapq</code>, <code>decimal</code>) without external ML libraries.
+      </p>
+
+      <h3>Multinomial Naïve Bayes</h3>
+      <p>
+        A generative probabilistic classifier that models word likelihoods given each class under the conditional independence assumption. Using <code>Decimal</code> arithmetic to avoid floating-point underflow on long tweets, it computes class log/product scores using training priors (<em>P</em>(Non-hate) = 0.534, <em>P</em>(Hate) = 0.466) and Laplace smoothing (smoothing parameter = 1) across the 15,943-word vocabulary.
+      </p>
+
+      <h3>k-Nearest Neighbors (k-NN)</h3>
+      <p>
+        An instance-based lazy learner that stores all 10,000 L2-normalized training TF-IDF vectors in memory. Because vectors are unit-normalized, computing cosine similarity reduces to a dot product, which yields the exact same neighbor ranking as Euclidean distance. To make inference efficient across 10,000 documents, we implemented an <strong>inverted index</strong> mapping each vocabulary word to the training documents containing it. The <em>k</em> most similar neighbors vote by majority rule; tweets with zero known vocabulary words default to the majority class (Non-hate).
+      </p>
+
+      <h3>Perceptron</h3>
+      <p>
+        A single-layer linear classifier that learns a weight vector across all 15,943 features plus a bias term (<em>w</em><sub>0</sub>), all initialized to 0.0. Using a step activation function (predicting Hate when weighted sum &ge; 0) and learning rate &eta; = 0.5, the model iterates sequentially through the training set and updates weights via <em>w</em> &larr; <em>w</em> + &eta;(<em>d</em> &minus; <em>y</em>)<em>x</em> whenever a classification mistake occurs.
+      </p>
+    </section>
+
+    <!-- SECTION 5: Experimental Setup -->
+    <section id="setup">
+      <h2>4. Experimental Setup and Evaluation Metrics</h2>
+      <p>
+        <strong>Data Splits &amp; Tuning Protocol:</strong> We preserved the dataset's predefined split (10,000 train / 4,232 validation / 4,232 test). All feature statistics and model parameters were learned strictly on the training set. The validation set was used to select hyperparameters (specifically tuning odd values <em>k</em> &isin; {1, 3, 5, 7, 9, 11, 15, 21, 31, 41} for k-NN to avoid tied votes), leaving the test set completely untouched until final evaluation.
+      </p>
+      <p>
+        <strong>Custom Evaluation Metrics:</strong> Treating <strong>Hate (1)</strong> as the positive class, we implemented our own confusion matrix and metric routines:
+      </p>
+      <div class="formula-box">
+        Accuracy  = (TP + TN) / (TP + TN + FP + FN)<br>
+        Precision = TP / (TP + FP)<br>
+        Recall    = TP / (TP + FN)<br>
+        F1-Score  = 2 &times; (Precision &times; Recall) / (Precision + Recall)
+      </div>
+      <p>
+        Because a trivial majority-class baseline achieves 52.6% accuracy on the test set, we prioritize <strong>F1-Score</strong>—the harmonic mean of precision and recall—to balance the cost of missed hate speech (False Negatives) against false moderation flags (False Positives).
+      </p>
+    </section>
+
+    <!-- SECTION 6: Results -->
+    <section id="results">
+      <h2>5. Experimental Results</h2>
+      <!-- Reminder: Update tables below if you tune Naïve Bayes or Perceptron for Milestone 4 -->
+
+      <h3>Table 1: Validation Set Performance (4,232 tweets)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1-Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Naïve Bayes</td>
+            <td>72.52%</td>
+            <td>67.17%</td>
+            <td class="highlight-cell">77.91%</td>
+            <td class="highlight-cell">72.14%</td>
+          </tr>
+          <tr>
+            <td>k-Nearest Neighbors (k = 11)</td>
+            <td class="highlight-cell">73.68%</td>
+            <td>74.27%</td>
+            <td>64.82%</td>
+            <td>69.23%</td>
+          </tr>
+          <tr>
+            <td>Perceptron</td>
+            <td>73.11%</td>
+            <td class="highlight-cell">76.59%</td>
+            <td>59.23%</td>
+            <td>66.80%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Table 2: Test Set Performance (4,232 tweets)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1-Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Naïve Bayes</td>
+            <td class="highlight-cell">73.13%</td>
+            <td>69.25%</td>
+            <td class="highlight-cell">77.98%</td>
+            <td class="highlight-cell">73.35%</td>
+          </tr>
+          <tr>
+            <td>k-Nearest Neighbors (k = 11)</td>
+            <td>72.16%</td>
+            <td>74.28%</td>
+            <td>63.18%</td>
+            <td>68.28%</td>
+          </tr>
+          <tr>
+            <td>Perceptron</td>
+            <td>72.35%</td>
+            <td class="highlight-cell">77.30%</td>
+            <td>59.04%</td>
+            <td>66.95%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Table 3: Test Set Confusion Matrices</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>True Negatives (TN)</th>
+            <th>False Positives (FP)</th>
+            <th>False Negatives (FN)</th>
+            <th>True Positives (TP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Naïve Bayes</td>
+            <td>1,530</td>
+            <td>695</td>
+            <td>442</td>
+            <td>1,565</td>
+          </tr>
+          <tr>
+            <td>k-Nearest Neighbors (k = 11)</td>
+            <td>1,786</td>
+            <td>439</td>
+            <td>739</td>
+            <td>1,268</td>
+          </tr>
+          <tr>
+            <td>Perceptron</td>
+            <td>1,877</td>
+            <td>348</td>
+            <td>822</td>
+            <td>1,185</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Table 4: k-NN Hyperparameter Tuning (Validation F1-Score)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>k</th>
+            <th>1</th>
+            <th>3</th>
+            <th>5</th>
+            <th>7</th>
+            <th>9</th>
+            <th style="background-color: #2b6cb0;">11</th>
+            <th>15</th>
+            <th>21</th>
+            <th>31</th>
+            <th>41</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Validation F1 (%)</strong></td>
+            <td>66.03</td>
+            <td>68.92</td>
+            <td>67.96</td>
+            <td>68.06</td>
+            <td>68.87</td>
+            <td class="highlight-cell">69.23</td>
+            <td>68.57</td>
+            <td>68.66</td>
+            <td>68.39</td>
+            <td>68.16</td>
+          </tr>
+        </tbody>
+      </table>
+
+     <div class="figure-grid">
+        <figure>
+            <img src="methods/results/figures/validbar-graph.png" alt="Validation Set Model Comparison" />
+            <figcaption><strong>Figure 1:</strong> Validation set performance comparison across Accuracy, Precision, Recall, and F1-Score.</figcaption>
+        </figure>
+        <figure>
+            <img src="methods/results/figures/test_bar.png" alt="Test Set Model Comparison" />
+            <figcaption><strong>Figure 2:</strong> Test set performance comparison across Accuracy, Precision, Recall, and F1-Score.</figcaption>
+        </figure>
+        <figure>
+            <img src="methods/results/figures/knn_k_tuning.png" alt="k-NN Validation F1 Tuning" />
+            <figcaption><strong>Figure 3:</strong> Validation F1-Score across candidate neighborhood sizes <em>k</em>, peaking at <em>k</em> = 11 (69.23%).</figcaption>
+        </figure>
+        <figure>
+            <img src="methods/results/figures/perceptron_epochs.png" alt="Perceptron Training Updates per Epoch" />
+            <figcaption><strong>Figure 4:</strong> Perceptron training mistakes per epoch over 100 epochs (decreasing from 3,544 to 122 without reaching zero).</figcaption>
+        </figure>
+        <figure>
+            <img src="methods/results/figures/pca_perceptron_boundary.png" alt="2D PCA Projection with Linear Boundary" />
+            <figcaption><strong>Figure 5:</strong> 2D PCA projection of normalized TF-IDF features illustrating class overlap and non-linear separability.</figcaption>
+        </figure>
+    </div>
+    </section>
+
+    <!-- SECTION 7: Discussion -->
+    <section id="discussion">
+      <h2>6. Discussion, Limitations, and Improvements</h2>
+      <ul>
+        <li><strong>Accuracy Masks Precision–Recall Trade-offs:</strong> On the test set, all three models fall within a narrow 0.97-percentage-point accuracy band (72.16% to 73.13%), yet their recall scores span nearly 19 percentage points (59.04% to 77.98%).</li>
+        <li><strong>Naïve Bayes (Best Overall F1 &amp; Recall):</strong> Achieved the highest test F1-score (73.35%) and recall (77.98%), catching 1,565 of 2,007 hate tweets. Its generative word-likelihood aggregation captures subtle lexical cues across Taglish vocabulary, though at the expense of higher false positives (695 non-hate tweets flagged).</li>
+        <li><strong>Perceptron (Highest Precision, Non-Linear Separability):</strong> Achieved the highest test precision (77.30%) with only 348 false alarms, but missed 41% of actual hate tweets (recall 59.04%). As shown in Figure 4, training mistakes dropped from 3,544 in epoch 1 to 122 in epoch 100 without reaching convergence—confirming that high-dimensional TF-IDF tweet representations are not linearly separable.</li>
+        <li><strong>k-NN (Balanced Middle Ground):</strong> Achieved the highest validation accuracy (73.68%) and placed between Naïve Bayes and Perceptron on test precision (74.28%) and recall (63.18%).</li>
+        <li><strong>Dataset Limitations &amp; Noise:</strong> Exactly 146 identical tweet texts appear in the corpus with conflicting labels (~1.6% of rows), creating an inherent noise ceiling. Additionally, sarcasm and context-dependent political banter in Taglish limit unigram Bag-of-Words and TF-IDF representations.</li>
+        <li><strong>Future Improvements:</strong> Incorporating n-gram features (bigrams/trigrams) to capture negated phrases, applying subword tokenization or morphological stemming for Filipino affixes (<em>mag-</em>, <em>nag-</em>, <em>-in</em>), and using averaged or margin-based Perceptron updates could further improve generalization.</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 8: Conclusion -->
+    <section id="conclusion">
+      <h2>7. Conclusion</h2>
+      <p>
+        We built an end-to-end Filipino hate speech classification pipeline from scratch comparing Naïve Bayes, k-NN, and the Perceptron across 18,464 election-related tweets. <strong>Multinomial Naïve Bayes</strong> achieved the strongest overall balance with a test F1-score of <strong>73.35%</strong> and recall of <strong>77.98%</strong>, making it the best choice when minimizing missed hate speech is the primary goal. Conversely, the <strong>Perceptron</strong> achieved the highest precision (<strong>77.30%</strong>), making it preferable when minimizing false censorship flags is critical.
+      </p>
+    </section>
+
+    <!-- SECTION 9: References and Disclosures -->
+    <section id="references">
+      <h2>8. References &amp; Disclosures</h2>
+      <ul>
+        <li>Cabasag, N. V., Chan, V. R., Lim, S. C., Gonzales, M. E., &amp; Cheng, C. (2019). Hate speech in Philippine election-related tweets. <em>Philippine Computing Journal</em>, XIV(1).</li>
+        <li>Cruz, J. C. B., &amp; Cheng, C. (2020). Establishing baselines for text classification in low-resource languages. <em>arXiv:2005.02068</em>.</li>
+        <li>CMSC 170 Laboratory Modules: Lab 04 (Naïve Bayes), Lab 06 (Nearest-Neighbor Model), and Lab 08 (Perceptron).</li>
+      </ul>
+
+      <h3>External Libraries &amp; AI Tool Disclosure</h3>
+      <p>
+        <strong>Allowed Libraries Used:</strong> All preprocessing, feature extraction (BoW, TF-IDF, L2 normalization), classifiers, and evaluation metrics were written from scratch using the Python standard library. <code>matplotlib</code> was used solely in <code>methods/evaluate.py</code> to generate comparison plots, and <code>unittest</code> was used to verify metric formulas against hand-calculated examples.
+      </p>
+      <p>
+        <strong>AI Assistance Disclosure:</strong> AI assistants (Claude / Gemini) were used to help structure automated verification checks in <code>methods/evaluate.py</code>, generate unit test boilerplate, format HTML/CSS for this GitHub Pages site, and refine prose clarity in the technical report. Every line of algorithm and evaluation code was reviewed, tested, and verified by the group members.
+      </p>
+    </section>
+
+  </main>
+
+</body>
+</html>
